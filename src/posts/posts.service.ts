@@ -25,19 +25,24 @@ export class PostsService {
   ) {}
 
   async getPosts() {
-    return this.postRepository.find(); // repository 함수는 기본적으로 비동기이다.
+    return this.postRepository.find({
+      relations: ['author'],
+    }); // repository 함수는 기본적으로 비동기이다.
   }
 
   async getPostById(id: number) {
-    const post = await this.postRepository.findOne({ where: { id } });
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
 
     if (!post) throw new NotFoundException();
 
     return post;
   }
 
-  async createPost(author: string, title: string, content: string) {
-    if (!author || !title || !content) {
+  async createPost(authorId: number, title: string, content: string) {
+    if (!authorId || !title || !content) {
       throw new BadRequestException('입력값이 충분하지 않습니다.', {
         cause: new Error(),
         description: '입력값을 완전히 입력해주세요.',
@@ -45,7 +50,9 @@ export class PostsService {
     }
 
     const newPost = this.postRepository.create({
-      author,
+      author: {
+        id: authorId, // ManyToOne 관계를 어떤식으로 만들지 나타냄 (id를 통해 ManyToOne 관계를 나타냄)
+      },
       title,
       content,
       likeCount: 0,
@@ -56,12 +63,7 @@ export class PostsService {
     return newPost;
   }
 
-  async modifyPost(
-    id: number,
-    author?: string,
-    title?: string,
-    content?: string,
-  ) {
+  async modifyPost(id: number, title?: string, content?: string) {
     const findPost = await this.postRepository.findOne({ where: { id } });
 
     if (!findPost) {
@@ -70,7 +72,6 @@ export class PostsService {
 
     const updatePost = {
       ...findPost,
-      author: author || findPost.author,
       title: title || findPost.title,
       content: content || findPost.content,
     };
