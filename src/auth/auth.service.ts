@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -13,6 +15,12 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
+  verifyToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: this.config.get('SECRET'),
+    });
+  }
+
   signToken(user: Pick<UsersModel, 'id' | 'email'>, isRefreshToken: boolean) {
     const payload = {
       email: user.email,
@@ -24,6 +32,18 @@ export class AuthService {
       secret: this.config.get('SECRET'),
       expiresIn: isRefreshToken ? 3600 : 300,
     });
+  }
+
+  rotateToken(token: string, isRefreshToken: boolean) {
+    const decoded = this.verifyToken(token);
+
+    if (decoded.type !== 'refresh') {
+      throw new UnauthorizedException(
+        '토큰 재발급은 refresh token만 사용가능합니다.',
+      );
+    }
+
+    return this.signToken({ ...decoded }, isRefreshToken);
   }
 
   loginUser(user: Pick<UsersModel, 'id' | 'email'>) {
