@@ -6,22 +6,31 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostsModel } from './posts/entities/posts.entity';
 import { UsersModule } from './users/users.module';
 import { UsersModel } from './users/entities/users.entity';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     PostsModule,
-    TypeOrmModule.forRoot({
-      // forRoot는 typeorm 연결 역할에 사용
-      type: 'postgres', // DB type
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'postgres',
-      entities: [PostsModel, UsersModel],
-      synchronize: true, // typeorm과 database의 싱크를 자동으로 맞출건지
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        // forRoot는 typeorm 연결 역할에 사용
+        type: 'postgres', // DB type
+        host: 'localhost',
+        port: configService.get('DB_PORT'),
+        username: configService.get('DB_NAME'),
+        password: configService.get('DB_PASSWORD'),
+        database: configService.get('DB'),
+        entities: [PostsModel, UsersModel],
+        synchronize: true, // typeorm과 database의 싱크를 자동으로 맞출건지
+      }),
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
