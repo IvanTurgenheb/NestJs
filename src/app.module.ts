@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         database: configService.get('DB'),
         entities: [PostsModel, UsersModel],
         synchronize: true, // typeorm과 database의 싱크를 자동으로 맞출건지
+        timezone: 'Asia/Seoul',
       }),
     }),
     ConfigModule.forRoot({
@@ -31,6 +33,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     UsersModule,
     AuthModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
