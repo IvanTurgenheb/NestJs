@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
 } from '@nestjs/common';
@@ -19,8 +20,9 @@ export class PostsController {
   }
 
   @Get(':id')
-  getPostById(@Param('id') id: string) {
-    return this.postsService.getPostById(Number(id));
+  getPostById(@Param('id', ParseIntPipe) id: number) {
+    // pipe를 사용하면 type 검증도 해줌
+    return this.postsService.getPostById(id);
   }
 
   @Post()
@@ -34,15 +36,15 @@ export class PostsController {
 
   @Put(':id')
   modifyPost(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('title') title?: string,
     @Body('content') content?: string,
   ) {
-    return this.postsService.modifyPost(Number(id), title, content);
+    return this.postsService.modifyPost(id, title, content);
   }
 
   @Delete(':id')
-  deletePost(@Param('id') id: string) {
-    return this.postsService.deletePost(Number(id));
+  deletePost(@Param('id', ParseIntPipe) id: number) {
+    return this.postsService.deletePost(id);
   }
 }
